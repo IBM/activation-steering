@@ -9,7 +9,7 @@ This tutorial covers operations introduced in ***Programming Refusal with Condit
 ## Part I: Adding a Behavior
 To get started with this library, we recommend starting by some simple steering experiments. Let's start by steering a model to refuse all instructions by adding a refusal behavior vector.
 
-1. Download refusal behavior examples (behavior_refusal.json) 👉 [It's Here!](demo-data-package/behavior_refusal.json)
+1. Download refusal behavior examples (behavior_refusal.json) 👉 [It's Here!](demo-data/behavior_refusal.json)
 ```javascript
     {
         "compliant_responses": [
@@ -23,7 +23,7 @@ To get started with this library, we recommend starting by some simple steering 
     }
 ```
 
-2. Download some question examples (alpaca.json) 👉 [It's Here!](demo-data-package/alpaca.json)
+2. Download some question examples (alpaca.json) 👉 [It's Here!](demo-data/alpaca.json)
 ```javascript
     {
         "train": [
@@ -125,7 +125,7 @@ To get started with this library, we recommend starting by some simple steering 
 ## Part II: Conditioning a Behavior
 Okay, that was interesting but it made the model useless since it now refuses all instructions. It should only refuse harmful instructions! To do this, we need to extract another type of a vector: condition vector. Let's try creating a "harmful" condition vector.
 
-1. Download harmful and harmless prompt examples (condition_harmful.json) 👉 [It's Here!](demo-data-package/condition_harmful.json)
+1. Download harmful and harmless prompt examples (condition_harmful.json) 👉 [It's Here!](demo-data/condition_harmful.json)
 ```javascript
     {
         "train": [
@@ -292,7 +292,7 @@ Okay, that was interesting but it made the model useless since it now refuses al
 ## Part III: Multi-Conditioning
 Congratulations on making up to here. We're almost done with this tutorial, and this is the flower of this library. Here, we deal with cases where we have more than one condition vector (C1, C2, C3, ...) or behavior vector (B1, B2, ...). Can we give rules to their relationships like "if C1 then B1" or "if C1 or C2 then B2"?
 
-1. Download multi-conditioning prompt examples. These are paraphrased prompts from base alpaca dataset (condition_multiple.json) 👉 [It's Here!](demo-data-package/condition_multiple.json)
+1. Download multi-conditioning prompt examples. These are paraphrased prompts from base alpaca dataset (condition_multiple.json) 👉 [It's Here!](demo-data/condition_multiple.json)
 ```javascript
     {
         "train": [
