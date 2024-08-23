@@ -15,6 +15,10 @@ git clone https://github.ibm.com/Principled-AI/activation-steering
 pip install -e activation-steering
 ```
 
+if the clone command above doesn't work, use
+```bash
+git clone git@github.ibm.com:Principled-AI/activation-steering.git
+```
 ## Activation Steering
 Activation steering is a technique for influencing the behavior of language models by modifying their internal activations during inference. This library provides tools for:
 
