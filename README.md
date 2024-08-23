@@ -10,9 +10,10 @@ This is a general-purpose activation steering library to (1) extract vectors and
 
 ## Installation
 ```bash
-    git clone https://github.ibm.com/Bruce-Lee1/activation_steering
-    
-    pip install -e activation_steering
+    git clone https://github.ibm.com/Principled-AI/activation-steering
+```
+```bash
+    pip install -e activation-steering
 ```
 
 ## Activation Steering
