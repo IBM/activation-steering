@@ -359,28 +359,7 @@ malleable_model.multisteer(
 )
 ```
 
-This allows you to create more nuanced and complex conditional behaviors in your model.
-
-### Can I use multiple steering vectors?
-
-Yes, you can use multiple steering vectors with the `multisteer` method:
-
-```python
-# Assume you have multiple SteeringVectors: steering_vector1, steering_vector2
-
-malleable_model.multisteer(
-    behavior_vectors=[steering_vector1, steering_vector2],
-    behavior_layer_ids=[[10, 11, 12], [13, 14, 15]],
-    behavior_vector_strengths=[1.0, 0.8],
-    condition_vectors=[steering_vector3, steering_vector4],
-    condition_layer_ids=[[10, 11], [13, 14]],
-    condition_vector_thresholds=[0.5, 0.6],
-    condition_comparator_threshold_is=["larger", "smaller"],
-    rules=["if C1 then B1", "if C2 then B2"]
-)
-```
-
-This allows for complex conditional behaviors, where different steering vectors are applied based on different conditions.
+This allows you to create more nuanced and complex conditional behaviors in your model. 
 
 ### How do I find the best condition point for steering?
 
