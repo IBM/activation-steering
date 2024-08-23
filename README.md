@@ -8,6 +8,7 @@
 
 This is a general-purpose activation steering library to (1) extract vectors and (2) steer model behavior. We release this library alongside our recent report on *Programming Refusal with Conditional Activation Steering* to provide an intuitive tool chain for activation steering efforts.
 
+
 ## Installation
 ```bash
 git clone https://github.ibm.com/Principled-AI/activation-steering
