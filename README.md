@@ -11,7 +11,7 @@ This is a general-purpose activation steering library to (1) extract vectors and
 ## Installation
 ```bash
     git clone https://github.ibm.com/Principled-AI/activation-steering
-    
+
     pip install -e activation-steering
 ```
 
@@ -33,7 +33,7 @@ For detailed implementation and usage of both activation steering and conditiona
 Refer to /docs to understand this library. We recommend starting with Quick Start Tutorial as it covers most concepts that you need to get started with activation steering and conditional activation steering.
 
 - Quick Start Tutorial (10 minutes ~ 60 minutes) 👉 [here!](docs/quickstart.md)
-- FAQ 👉 [here!](docs/quickstart.md)
+- FAQ 👉 [here!](docs/faq.md)
 
 ## Acknowledgement
 This library builds on top of the excellent work done in the following repositories:
