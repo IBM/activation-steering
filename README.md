@@ -27,8 +27,6 @@ Conditional activation steering selectively applies or withholds activation stee
 - Context-dependent control capabilities through condition vectors
 - Logical composition of multiple condition vectors 
 
-Our paper explores this concept within the context of customizing refusal conditions. We conditionally steer a model to only refuse a specific or multiple category of instructions and steer a model to refuse all other categories of instructions except one.
-
 For detailed implementation and usage of both activation steering and conditional activation steering, refer to our paper and the documentation.
 
 ## Documentation
