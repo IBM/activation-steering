@@ -2,7 +2,7 @@
 
 # Activation Steering
 
-<!-- 👉 [***Programming Refusal with Conditional Activation Steering*** on arXiv](https://arxiv.org/abs/2408.09111)-->
+👉 [***Programming Refusal with Conditional Activation Steering*** on arXiv](https://arxiv.org/abs/2409.05907)
 
 ## Overview
 
