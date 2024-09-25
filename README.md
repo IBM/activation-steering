@@ -32,7 +32,7 @@ For detailed implementation and usage of both activation steering and conditiona
 ## Documentation
 Refer to /docs to understand this library. We recommend starting with Quick Start Tutorial as it covers most concepts that you need to get started with activation steering and conditional activation steering.
 
-- Quick Start Tutorial (10 minutes ~ 60 minutes) 👉 [here!](docs/quickstart.md)
+- Quick Start Tutorial (10 minutes ~ 60 minutes, depending on your hardware) 👉 [here!](docs/quickstart.md)
 - FAQ 👉 [here!](docs/faq.md)
 
 ## Some Optional Colab Examples
