@@ -2,7 +2,7 @@
 
 # Activation Steering
 
-👉 [***Programming Refusal with Conditional Activation Steering*** on arXiv](https://arxiv.org/abs/2409.05907)
+👉 Preprint Released! [***Programming Refusal with Conditional Activation Steering***](https://arxiv.org/abs/2409.05907) on arXiv
 
 ## Overview
 
