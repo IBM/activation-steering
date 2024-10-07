@@ -35,7 +35,7 @@ Refer to /docs to understand this library. We recommend starting with Quick Star
 - Quick Start Tutorial (10 minutes ~ 60 minutes, depending on your hardware) 👉 [here!](docs/quickstart.md)
 - FAQ 👉 [here!](docs/faq.md)
 
-## Some Optional Colab Examples
+## Quick Colab Examples
 
 - Adding Refusal Behavior to LLaMA 3.1 8B Inst 👉 [here!](https://colab.research.google.com/drive/1IpAPMFHZW6CNrE0L16TXSvIApAK9jAFZ?usp=sharing)
 ## Acknowledgement
