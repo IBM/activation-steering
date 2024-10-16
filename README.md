@@ -38,6 +38,8 @@ Refer to /docs to understand this library. We recommend starting with Quick Star
 ## Quick Colab Examples
 
 - Adding Refusal Behavior to LLaMA 3.1 8B Inst 👉 [here!](https://colab.research.google.com/drive/1IpAPMFHZW6CNrE0L16TXSvIApAK9jAFZ?usp=sharing)
+- Adding CoT Behavior to LLaMA 3.2 1B 👉 [here!](https://colab.research.google.com/drive/1dnG000syxHwOt-Z9_bpRLnBbfugI_CBh?usp=sharing)
+  
 ## Acknowledgement
 This library builds on top of the excellent work done in the following repositories:
 
