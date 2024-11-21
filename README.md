@@ -39,6 +39,7 @@ Refer to /docs to understand this library. We recommend starting with Quick Star
 
 - Adding Refusal Behavior to LLaMA 3.1 8B Inst 👉 [here!](https://colab.research.google.com/drive/1IpAPMFHZW6CNrE0L16TXSvIApAK9jAFZ?usp=sharing)
 - Adding CoT Behavior to Gemma 2 9B 👉 [here!](https://colab.research.google.com/drive/1dnG000syxHwOt-Z9_bpRLnBbfugI_CBh?usp=sharing)
+- Making Hermes 2 Pro Conditionally Refuse Legal Instructions 👉 [here!](https://colab.research.google.com/drive/18lOzaFOK4CB_mYe9jlQbJCdHBDlhGxcQ?usp=sharing)
   
 ## Acknowledgement
 This library builds on top of the excellent work done in the following repositories:
