@@ -2,7 +2,9 @@
 
 # Activation Steering
 
-👉 Preprint Released! [***Programming Refusal with Conditional Activation Steering***](https://arxiv.org/abs/2409.05907) on arXiv
+👉 (Nov-2024) Colab Demos Added! 
+
+👉 (Sep-2024) Preprint Released! [***Programming Refusal with Conditional Activation Steering***](https://arxiv.org/abs/2409.05907) on arXiv
 
 ## Overview
 
