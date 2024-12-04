@@ -23,13 +23,15 @@ Activation steering is a technique for influencing the behavior of language mode
 - Extracting steering vectors from contrastive examples
 - Applying steering vectors to modify model behavior
 
+Though the exact implementations might differ, this part is conceptually similar to [Steering Language Models With Activation Engineering](https://arxiv.org/abs/2308.10248).
+
 ## Conditional Activation Steering
 Conditional activation steering selectively applies or withholds activation steering based on the input context. Conditional activation steering extends the activation steering framework by introducing:
 
 - Context-dependent control capabilities through condition vectors
 - Logical composition of multiple condition vectors 
 
-For detailed implementation and usage of both activation steering and conditional activation steering, refer to our paper and the documentation.
+Refer to our [paper](https://arxiv.org/abs/2409.05907) and [documentation](docs/quickstart.md) for detailed implementation and usage of activation steering and conditional activation steering.
 
 ## Documentation
 Refer to /docs to understand this library. We recommend starting with Quick Start Tutorial as it covers most concepts that you need to get started with activation steering and conditional activation steering.
