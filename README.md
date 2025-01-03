@@ -4,11 +4,11 @@
 
 👉 (Nov-2024) A few Colab demos are added.
 
-👉 (Sep-2024) Preprint released [***Programming Refusal with Conditional Activation Steering***](https://arxiv.org/abs/2409.05907) on arXiv.
+👉 (Sep-2024) Preprint released on [arXiv](https://arxiv.org/abs/2409.05907).
 
 ## Overview
 
-This is a general-purpose activation steering library to (1) extract vectors and (2) steer model behavior. We release this library alongside our recent report on *Programming Refusal with Conditional Activation Steering* to provide an intuitive toolchain for activation steering efforts.
+This is a general-purpose activation steering library to (1) extract vectors and (2) steer model behavior. We release this library alongside our recent report on [*Programming Refusal with Conditional Activation Steering*](https://arxiv.org/abs/2409.05907) to provide an intuitive toolchain for activation steering efforts.
 
 ## Installation
 ```bash
