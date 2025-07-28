@@ -190,13 +190,10 @@ def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: Pre
             # Calculate the difference between positive and negative examples
             train = h[::2] - h[1::2]
         elif method == "pca_center":
-            # Calculate the center of positive and negative examples
-            center = (h[::2] + h[1::2]) / 2
-            train = h
-            
-            # Subtract the center from the examples
-            train[::2] -= center
-            train[1::2] -= center
+            # Calculate the mean center across all examples
+            center = h.mean(axis=0)
+            # Subtract the global mean from all examples
+            train = h - center
         else:
             raise ValueError("unknown method " + method)
         
@@ -360,10 +357,8 @@ def save_pca_figures(layer_hiddens, hidden_layer_ids, method, output_dir, inputs
         if method == "pca_diff":
             train = h[::2] - h[1::2]
         elif method == "pca_center":
-            center = (h[::2] + h[1::2]) / 2
-            train = h
-            train[::2] -= center
-            train[1::2] -= center
+            center = h.mean(axis=0)
+            train = h - center
         else:
             raise ValueError("unknown method " + method)
 
