@@ -2,7 +2,7 @@
 
 # Activation Steering
 
-👉 (Aug-2025) Added `pca_pairwise` method and set as default. Use `method="pca_pairwise"` to reproduce results closer to those reported in the paper.
+👉 (Aug-2025) Added `pca_pairwise` method and set as default. Use `method="pca_pairwise"` to reproduce results closer to those reported in the paper. Colab demos (see below) are fixed accordingly, and they should work as expected.
 
 👉 (Jul-2025) Bug fixed: PCA_centering (@Reason239)
 
