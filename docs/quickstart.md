@@ -76,7 +76,7 @@ refusal_behavior_vector = SteeringVector.train(
     model=model,
     tokenizer=tokenizer,
     steering_dataset=refusal_behavior_dataset,
-    method="pca_center",
+    method="pca_pairwise",  # Using recommended method
     accumulate_last_x_tokens="suffix-only"
 )
 
@@ -179,7 +179,7 @@ harmful_condition_vector = SteeringVector.train(
     model=model,
     tokenizer=tokenizer,
     steering_dataset=harmful_condition_dataset,
-    method="pca_center",
+    method="pca_pairwise",  # Using recommended method
     accumulate_last_x_tokens="all"
 )
 
@@ -374,7 +374,7 @@ for target_condition in list_of_conditions:
         model=model,
         tokenizer=tokenizer,
         steering_dataset=condition_dataset,
-        method="pca_center",
+        method="pca_pairwise",  # Using recommended method
         accumulate_last_x_tokens="all"
     )
 
@@ -462,4 +462,16 @@ steered_responses = malleable_model.respond_batch_sequential(
 print(steered_responses)
 ```
 
-It is also possible to flip the comparison direction (condition_comparator_threshold_is) to intervene on the exact complement of the target condition. This technique comes in handy when you're trying to create a model that only responds to certain prompts, like health consultation for example. 
+It is also possible to flip the comparison direction (condition_comparator_threshold_is) to intervene on the exact complement of the target condition. This technique comes in handy when you're trying to create a model that only responds to certain prompts, like health consultation for example.
+
+## PCA Methods for Steering Vector Extraction
+
+The library offers three methods for extracting steering vectors. We recommend **`pca_pairwise`** as default.
+
+### Available Methods
+
+1. **`pca_pairwise` (Recommended)**: For each positive-negative pair, finds their midpoint and subtracts it from both. This creates perfectly opposite vectors that capture the pure direction from negative to positive behavior.
+
+2. **`pca_center`**: Standard PCA that subtracts the global mean of all examples. This is the traditional approach but often less effective for steering.
+
+3. **`pca_diff`**: Simply computes `positive - negative` for each pair. Similar to the approach used in Representation Engineering papers.

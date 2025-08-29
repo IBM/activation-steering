@@ -2,6 +2,8 @@
 
 # Activation Steering
 
+👉 (Aug-2025) Added `pca_pairwise` method and set as default. Use `method="pca_pairwise"` to reproduce results closer to those reported in the paper.
+
 👉 (Jul-2025) Bug fixed: PCA_centering (@Reason239)
 
 👉 (Apr-2025) Conditional Activation Steering is a spotlight paper at ICLR 2025!
@@ -20,8 +22,6 @@ git clone https://github.com/IBM/activation-steering
 
 pip install -e activation-steering
 ```
-
-If you need something that ***just works***, try running ```demo-extract.py``` and ```demo-chat.py```. But I recommend that you look over the [Quick Start Tutorial](docs/quickstart.md).
 
 ## Activation Steering
 Activation steering is a technique for influencing the behavior of language models by modifying their internal activations during inference. This library provides tools for:

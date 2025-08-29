@@ -118,7 +118,7 @@ class SteeringVector:
                explained_variances=explained_variances)
 
 
-def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: PreTrainedTokenizerBase, inputs: list[ContrastivePair], hidden_layer_ids: typing.Iterable[int] | None = None, batch_size: int = 32, method: typing.Literal["pca_diff", "pca_center"] = "pca_center", save_analysis: bool = False, output_dir: str = "activation_steering_figures", accumulate_last_x_tokens: typing.Union[int, str] = 1, suffixes: typing.List[typing.Tuple[str, str]] = None) -> dict[int, np.ndarray]:
+def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: PreTrainedTokenizerBase, inputs: list[ContrastivePair], hidden_layer_ids: typing.Iterable[int] | None = None, batch_size: int = 32, method: typing.Literal["pca_diff", "pca_center", "pca_pairwise"] = "pca_pairwise", save_analysis: bool = False, output_dir: str = "activation_steering_figures", accumulate_last_x_tokens: typing.Union[int, str] = 1, suffixes: typing.List[typing.Tuple[str, str]] = None) -> dict[int, np.ndarray]:
     """
     Extract representations from the language model based on the contrast dataset.
 
@@ -128,7 +128,7 @@ def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: Pre
         inputs: A list of ContrastivePair inputs.
         hidden_layer_ids: The IDs of hidden layers to extract representations from.
         batch_size: The batch size to use when processing inputs.
-        method: The method to use for preparing training data ("pca_diff" or "pca_center").
+        method: The method to use for preparing training data ("pca_diff", "pca_center", or "pca_pairwise").
         save_analysis: Whether to save PCA analysis figures.
         output_dir: The directory to save analysis figures to.
         accumulate_last_x_tokens: How many tokens to accumulate for the hidden state.
@@ -194,6 +194,13 @@ def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: Pre
             center = h.mean(axis=0)
             # Subtract the global mean from all examples
             train = h - center
+        elif method == "pca_pairwise":
+            # Calculate the center of positive and negative examples (pairwise centering)
+            center = (h[::2] + h[1::2]) / 2
+            train = h.copy()
+            # Subtract the pairwise center from the examples
+            train[::2] -= center
+            train[1::2] -= center
         else:
             raise ValueError("unknown method " + method)
         
@@ -359,6 +366,11 @@ def save_pca_figures(layer_hiddens, hidden_layer_ids, method, output_dir, inputs
         elif method == "pca_center":
             center = h.mean(axis=0)
             train = h - center
+        elif method == "pca_pairwise":
+            center = (h[::2] + h[1::2]) / 2
+            train = h.copy()
+            train[::2] -= center
+            train[1::2] -= center
         else:
             raise ValueError("unknown method " + method)
 
