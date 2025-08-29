@@ -2,6 +2,8 @@
 
 # Activation Steering
 
+👉 (Aug-2025) Added `pca_pairwise` method and set as default. Use `method="pca_pairwise"` to reproduce results closer to those reported in the paper.
+
 👉 (Jul-2025) Bug fixed: PCA_centering (@Reason239)
 
 👉 (Apr-2025) Conditional Activation Steering is a spotlight paper at ICLR 2025!
