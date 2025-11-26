@@ -4,7 +4,16 @@ import typing
 import warnings
 
 import numpy as np
+
 from sklearn.decomposition import PCA
+from sklearn.linear_model import LogisticRegression
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.decomposition import FastICA
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.decomposition import SparsePCA
+from sklearn.decomposition import KernelPCA
+from sklearn.cluster import KMeans
+
 import torch
 from transformers import PreTrainedModel, PreTrainedTokenizerBase
 import matplotlib.pyplot as plt
@@ -13,7 +22,6 @@ from activation_steering.malleable_model import MalleableModel, get_model_layer_
 from activation_steering.utils import ContrastivePair, custom_progress
 from activation_steering.steering_dataset import SteeringDataset
 from activation_steering.config import log, GlobalConfig
-
 
 
 
@@ -118,7 +126,7 @@ class SteeringVector:
                explained_variances=explained_variances)
 
 
-def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: PreTrainedTokenizerBase, inputs: list[ContrastivePair], hidden_layer_ids: typing.Iterable[int] | None = None, batch_size: int = 32, method: typing.Literal["pca_diff", "pca_center", "pca_pairwise"] = "pca_pairwise", save_analysis: bool = False, output_dir: str = "activation_steering_figures", accumulate_last_x_tokens: typing.Union[int, str] = 1, suffixes: typing.List[typing.Tuple[str, str]] = None) -> dict[int, np.ndarray]:
+def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: PreTrainedTokenizerBase, inputs: list[ContrastivePair], hidden_layer_ids: typing.Iterable[int] | None = None, batch_size: int = 32, method: typing.Literal["pca_diff", "pca_center", "pca_pairwise","mean_diff","linear_probe","lda","mass_mean_shift","pls","ica","svd_primary","sparse_pca","random","kernel_pca","kmeans_diff"] = "pca_pairwise", save_analysis: bool = False, output_dir: str = "activation_steering_figures", accumulate_last_x_tokens: typing.Union[int, str] = 1, suffixes: typing.List[typing.Tuple[str, str]] = None) -> dict[int, np.ndarray]:
     """
     Extract representations from the language model based on the contrast dataset.
 
@@ -185,30 +193,270 @@ def read_representations(model: MalleableModel | PreTrainedModel, tokenizer: Pre
         # Retrieve the hidden states for the current layer
         h = layer_hiddens[layer]
         
-        # Prepare the training data based on the specified method
-        if method == "pca_diff":
-            # Calculate the difference between positive and negative examples
-            train = h[::2] - h[1::2]
-        elif method == "pca_center":
-            # Calculate the mean center across all examples
-            center = h.mean(axis=0)
-            # Subtract the global mean from all examples
-            train = h - center
-        elif method == "pca_pairwise":
-            # Calculate the center of positive and negative examples (pairwise centering)
-            center = (h[::2] + h[1::2]) / 2
-            train = h.copy()
-            # Subtract the pairwise center from the examples
-            train[::2] -= center
-            train[1::2] -= center
+    # --- VECTOR EXTRACTION METHODS ---
+
+        if method == "mean_diff":
+            # Method: Mean Difference
+            # Description: Calculates the simple difference between the centroids of positive 
+            # and negative classes. It does not use covariance or variance information.
+            # Use case: Few-shot scenarios or as a robust baseline.
+            
+            pos_mean = np.mean(h[::2], axis=0)
+            neg_mean = np.mean(h[1::2], axis=0)
+            
+            direction = pos_mean - neg_mean
+            
+            # Normalize to unit length
+            direction = direction / np.linalg.norm(direction)
+
+            directions[layer] = direction
+            # No explained variance metric for mean difference, setting to 1.0 placeholder
+            explained_variances[layer] = 1.0
+
+        elif method == "linear_probe":
+            # Method: Linear Probe (Logistic Regression)
+            # Description: Trains a linear classifier to separate positive and negative examples.
+            # The vector is the normal to the decision boundary (coefficients).
+            # Use case: Maximizing discriminative power between two distinct concepts.
+
+            # Prepare labels: 1 for Positive, 0 for Negative
+            y = np.zeros(h.shape[0])
+            y[::2] = 1 
+            y[1::2] = 0 
+
+            # Train Logistic Regression
+            # 'liblinear' is good for small datasets, high dimensionality
+            clf = LogisticRegression(fit_intercept=True, solver='liblinear', max_iter=1000).fit(h, y)
+            
+            direction = clf.coef_.squeeze()
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            # Use classification accuracy as a proxy for "quality" of the vector
+            explained_variances[layer] = clf.score(h, y)
+
+        elif method == "lda":
+            # Method: Linear Discriminant Analysis (Fisher's LDA)
+            # Description: Finds a direction that maximizes the distance between class means 
+            # while minimizing within-class variance.
+            # Use case: Statistically more robust than Mean Diff when sufficient data is available.
+
+            y = np.zeros(h.shape[0])
+            y[::2] = 1
+            y[1::2] = 0
+
+            # Solver 'svd' is preferred for high-dimensional data (feature > sample)
+            lda = LinearDiscriminantAnalysis(solver='svd')
+            lda.fit(h, y)
+            
+            direction = lda.coef_.squeeze()
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            explained_variances[layer] = lda.score(h, y)
+
+        elif method == "mass_mean_shift":
+            # Method: Mass Mean Shift (Covariance-Adjusted Mean Difference)
+            # Description: Adjusts the mean difference vector based on the data's covariance 
+            # structure. Formula: Sigma^(-1) * (Mu_pos - Mu_neg).
+            # Use case: When the concept direction is skewed by the geometry of the latent space.
+
+            pos_mean = np.mean(h[::2], axis=0)
+            neg_mean = np.mean(h[1::2], axis=0)
+            delta_mu = pos_mean - neg_mean
+
+            # Calculate Covariance Matrix (centered)
+            centered_data = h - h.mean(axis=0)
+            cov = np.cov(centered_data, rowvar=False)
+
+            # Solve for direction: Cov * d = delta_mu
+            try:
+                direction = np.linalg.solve(cov, delta_mu)
+            except np.linalg.LinAlgError:
+                # Use Pseudo-Inverse if matrix is singular (common in high-dim, low-sample)
+                inv_cov = np.linalg.pinv(cov)
+                direction = inv_cov @ delta_mu
+
+            direction = direction / np.linalg.norm(direction)
+
+            directions[layer] = direction
+            explained_variances[layer] = 1.0
+
+        elif method == "svd_primary":
+            # Method: SVD on Raw Data
+            # Description: Performs Singular Value Decomposition on uncentered data to find 
+            # the primary direction of magnitude/orientation.
+            # Use case: When the origin/bias information is important to preserve.
+            
+            u, s, vh = np.linalg.svd(h, full_matrices=False)
+            
+            # First singular vector
+            direction = vh[0]
+            
+            directions[layer] = direction
+            # Explained variance ratio
+            explained_variances[layer] = (s[0] ** 2) / np.sum(s ** 2)
+
+        elif method == "ica":
+            # Method: Independent Component Analysis
+            # Description: Seeks statistically independent components rather than just 
+            # uncorrelated ones (like PCA).
+            # Use case: Disentangling mixed (polysemantic) signals/concepts.
+            
+            ica = FastICA(n_components=1, whiten='unit-variance', random_state=42)
+            
+            # ICA usually works best on difference vectors
+            train_diff = h[::2] - h[1::2]
+            ica.fit(train_diff)
+            
+            direction = ica.components_[0]
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            explained_variances[layer] = 1.0
+
+        elif method == "pls":
+            # Method: Partial Least Squares Regression
+            # Description: Finds a direction that maximizes covariance between features (X) 
+            # and labels (Y). Hybrid of PCA and Linear Regression.
+            # Use case: Very stable for high-dimensional, low-sample settings (High Dimension Low Sample Size).
+
+            y = np.zeros(h.shape[0])
+            y[::2] = 1
+            y[1::2] = 0
+
+            pls = PLSRegression(n_components=1)
+            pls.fit(h, y)
+            
+            # x_weights_ represent the direction in X space
+            direction = pls.x_weights_.squeeze()
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            explained_variances[layer] = pls.score(h, y)
+
+        elif method in ["pca_diff", "pca_center", "pca_pairwise"]:
+            # Method: Principal Component Analysis (Variations)
+            # Description: Finds the direction of maximum variance in the data.
+            
+            if method == "pca_diff":
+                # PCA on difference vectors (Pos - Neg)
+                train = h[::2] - h[1::2]
+            elif method == "pca_center":
+                # PCA on globally centered data
+                center = h.mean(axis=0)
+                train = h - center
+            elif method == "pca_pairwise":
+                # PCA on pairwise centered data (removes shared content per pair)
+                center = (h[::2] + h[1::2]) / 2
+                train = h.copy()
+                train[::2] -= center
+                train[1::2] -= center
+            
+            pca_model = PCA(n_components=1, whiten=False).fit(train)
+            directions[layer] = pca_model.components_.astype(np.float32).squeeze(axis=0)
+            explained_variances[layer] = pca_model.explained_variance_ratio_[0]
+        elif method == "sparse_pca":
+            # Method: Sparse PCA
+            # Description: Similar to PCA but enforces sparsity (L1 regularization). 
+            # It tries to construct the direction using as few neurons as possible.
+            # Use case: "Surgical" steering. Reduces side effects by affecting fewer neurons.
+            # Ideally suits the "Sparse Autoencoder" hypothesis of LLMs.
+
+            # alpha: Regularization strength (higher = more sparse)
+            # ridge_alpha: Stability parameter
+            spca = SparsePCA(n_components=1, alpha=1, ridge_alpha=0.01, random_state=42)
+            
+            # Use difference vectors or centered data
+            if h.shape[0] > 1:
+                train = h[::2] - h[1::2]
+            else:
+                train = h
+
+            spca.fit(train)
+            
+            direction = spca.components_[0]
+            
+            # If the vector is all zeros (too much regularization), fallback to random or small noise
+            if np.all(direction == 0):
+                warnings.warn(f"Layer {layer}: Sparse PCA resulted in a zero vector. Reducing sparsity might help.")
+                direction = np.random.randn(direction.shape[0])
+
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            # Sparse PCA doesn't provide a standard explained variance ratio
+            explained_variances[layer] = 1.0
+
+        elif method == "random":
+            # Method: Random Direction (Baseline)
+            # Description: Generates a completely random unit vector.
+            # Use case: Scientific control. Used to verify that your other methods 
+            # are actually doing something better than chance.
+
+            # Generate random vector from standard normal distribution
+            direction = np.random.randn(h.shape[1])
+            
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            explained_variances[layer] = 0.0
+        elif method == "kernel_pca":
+            # Method: Kernel PCA (RBF Kernel)
+            # Description: Performs PCA in a high-dimensional feature space using the "kernel trick".
+            # It can capture non-linear relationships that standard PCA misses.
+            # Use case: When the concept manifold is curved (non-linear geometry).
+            
+            # fit_inverse_transform=True is CRITICAL. We need to map the vector back 
+            # to the original activation space (pre-image problem).
+            kpca = KernelPCA(n_components=1, kernel="rbf", fit_inverse_transform=True, alpha=1.0)
+            
+            # Use pairwise differences
+            if h.shape[0] > 1:
+                train = h[::2] - h[1::2]
+            else:
+                train = h
+
+            kpca.fit(train)
+            
+            # Get the first eigenvector in the feature space
+            # Note: In Kernel PCA, components_ are in the transformed space.
+            # We reconstruct the "linear approximation" of that non-linear direction in our original space.
+            # This is an approximation but often a very powerful one.
+            direction = kpca.eigenvectors_[0] @ kpca.dual_coef_ @ kpca.X_fit_
+            
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            explained_variances[layer] = 1.0 
+
+        elif method == "kmeans_diff":
+            # Method: K-Means Centroid Difference
+            # Description: Instead of taking the simple mean (which is sensitive to outliers),
+            # we cluster the positive and negative examples and take the difference of their
+            # main cluster centers.
+            # Use case: When data is "multimodal" (e.g., "Happy" has two types: Calm & Excited).
+            # This method finds the "densest" representation of the concept.
+
+            pos_data = h[::2]
+            neg_data = h[1::2]
+
+            # Find the main cluster center for positives (k=1 is robust mean)
+            kmeans_pos = KMeans(n_clusters=1, n_init=10).fit(pos_data)
+            pos_center = kmeans_pos.cluster_centers_[0]
+
+            # Find the main cluster center for negatives
+            kmeans_neg = KMeans(n_clusters=1, n_init=10).fit(neg_data)
+            neg_center = kmeans_neg.cluster_centers_[0]
+            
+            direction = pos_center - neg_center
+            
+            direction = direction / np.linalg.norm(direction)
+            
+            directions[layer] = direction
+            explained_variances[layer] = 1.0
         else:
-            raise ValueError("unknown method " + method)
-        
-        # Perform PCA with 1 component on the training data to extract the direction vector
-        pca_model = PCA(n_components=1, whiten=False).fit(train)
-        directions[layer] = pca_model.components_.astype(np.float32).squeeze(axis=0)
-        explained_variances[layer] = pca_model.explained_variance_ratio_[0]
-        
+            raise ValueError("Unknown method: " + method)
         # Example:
         # Suppose the hidden states for the current layer are:
         # h = np.array([
@@ -363,6 +611,11 @@ def save_pca_figures(layer_hiddens, hidden_layer_ids, method, output_dir, inputs
 
         if method == "pca_diff":
             train = h[::2] - h[1::2]
+        elif method in ["mean_diff", "linear_probe", "lda", "mass_mean_shift","pls","ica","svd_primary","sparse_pca", "random","kernel_pca", "kmeans_diff"]:
+            center = (h[::2] + h[1::2]) / 2
+            train = h.copy()
+            train[::2] -= center
+            train[1::2] -= center
         elif method == "pca_center":
             center = h.mean(axis=0)
             train = h - center
