@@ -234,8 +234,7 @@ class MalleableModel(torch.nn.Module):
                         behavior_direction = use_explained_variance(behavior_vector)
                     else:
                         behavior_direction = behavior_vector.directions[layer_id]
-
-                    behavior_tensor = torch.tensor(behavior_vector_strength * behavior_direction, dtype=self.model.dtype).to(self.model.device)
+                    behavior_tensor = torch.tensor(behavior_vector_strength * behavior_direction, dtype=torch.float16).to(self.model.device)
 
             
             condition_projector = None
@@ -683,5 +682,7 @@ def get_model_layer_list(model: MalleableModel | PreTrainedModel) -> torch.nn.Mo
         return model.model.layers
     elif hasattr(model, "transformer"):  # gpt-2-like
         return model.transformer.h
+    elif hasattr(model, "layers"): # Bazı varyasyonlar
+        return model.layers
     else:
         raise ValueError(f"don't know how to get layer list for {type(model)}")
